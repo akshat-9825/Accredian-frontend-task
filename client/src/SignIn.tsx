@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { Dispatch, FormEvent, SetStateAction, useState } from "react";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
@@ -7,16 +7,35 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ResponseType, handleLogin } from "./api";
 
 import "./App.scss";
-export default function SignIn() {
+
+export default function SignIn({
+  setSignedInState,
+}: {
+  setSignedInState: Dispatch<SetStateAction<boolean>>;
+}) {
   const [login, setLogin] = useState(true);
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  console.log(setSignedInState);
+  const handleLoginBtn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const email = data.get("email");
-    const password = data.get("password");
-    console.log(data, email, password);
+    const email = String(data.get("email"));
+    const password = String(data.get("password"));
+
+    try {
+      const response: ResponseType = await handleLogin({
+        identifier: email,
+        password: password,
+      });
+
+      if (response.success) {
+        setSignedInState(true);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
   const darkTheme = createTheme({
@@ -43,7 +62,9 @@ export default function SignIn() {
           </Typography>
           <Box
             component="form"
-            onSubmit={handleSubmit}
+            onSubmit={(event) => {
+              login ? handleLoginBtn(event) : null;
+            }}
             noValidate
             sx={{ mt: 1 }}>
             <TextField
