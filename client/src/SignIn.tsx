@@ -1,9 +1,7 @@
-import React from "react";
+import { FormEvent, useState } from "react";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -12,13 +10,13 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 import "./App.scss";
 export default function SignIn() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const [login, setLogin] = useState(true);
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
-    });
+    const email = data.get("email");
+    const password = data.get("password");
+    console.log(data, email, password);
   };
 
   const darkTheme = createTheme({
@@ -41,7 +39,7 @@ export default function SignIn() {
             alignItems: "center",
           }}>
           <Typography component="h1" variant="h5">
-            Sign in
+            {login ? "Sign in" : "Sign up"}
           </Typography>
           <Box
             component="form"
@@ -66,24 +64,25 @@ export default function SignIn() {
               type="password"
               id="password"
             />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}>
-              Sign In
+              {login ? "Sign in" : "Sign up"}
             </Button>
             <Grid container>
               <Grid item xs>
-                <div className="signup_sublinks">Forgot password?</div>
+                <div className="form_sublinks form_link">Forgot password?</div>
               </Grid>
               <Grid item>
-                <div className="signup_sublinks">
-                  Don't have an account? Sign Up
+                <div className="form_sublinks">
+                  {login
+                    ? "Don't have an account? "
+                    : "Already have an account? "}
+                  <a onClick={() => setLogin(!login)} className="form_link">
+                    {login ? "Sign up" : "Login"}
+                  </a>
                 </div>
               </Grid>
             </Grid>
