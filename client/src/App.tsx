@@ -1,9 +1,12 @@
 import "./App.scss";
+import SignIn from "./SignIn";
 
-function App() {
-  //
-
-  return <>Hello</>;
-}
+const App = () => {
+  return (
+    <>
+      <SignIn />
+    </>
+  );
+};
 
 export default App;
