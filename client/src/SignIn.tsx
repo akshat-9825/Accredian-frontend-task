@@ -28,6 +28,18 @@ export default function SignIn({
   const [showSnackBar, setShowSnackBar] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [isEmailValid, setIsEmailValid] = useState(true);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const checkEmailValid = (e: any) => {
+    if (e.target.value.length > 0) {
+      const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+      const isEmail = emailRegex.test(e.target.value);
+      setIsEmailValid(isEmail);
+    } else {
+      setIsEmailValid(true);
+    }
+  };
 
   const handleLoginBtn = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
@@ -35,6 +47,14 @@ export default function SignIn({
       const data = new FormData(event.currentTarget);
       const email = String(data.get("email"));
       const password = String(data.get("password"));
+
+      if (!email.length || !password.length) {
+        setErrorMsg("Please enter all required fields");
+        setSuccessMsg("");
+        console.log("Check");
+        setShowSnackBar(true);
+        return;
+      }
 
       try {
         const response: ResponseType = await handleLogin({
@@ -72,6 +92,18 @@ export default function SignIn({
       const password = String(data.get("password"));
       const username = String(data.get("username"));
       const confirmPassword = String(data.get("confirm_password"));
+
+      if (
+        !email.length ||
+        !password.length ||
+        !username.length ||
+        !confirmPassword.length
+      ) {
+        setErrorMsg("Please enter all required fields");
+        setSuccessMsg("");
+        setShowSnackBar(true);
+        return;
+      }
 
       if (verifyPassword(password, confirmPassword)) {
         try {
@@ -141,6 +173,11 @@ export default function SignIn({
               id="email"
               label={login ? "Email Address or Username" : "Email Address"}
               name="email"
+              helperText={
+                !login && !isEmailValid ? "Please enter a valid email" : null
+              }
+              error={!login ? !isEmailValid : false}
+              onChange={checkEmailValid}
               autoFocus
             />
             {!login ? (
@@ -184,9 +221,6 @@ export default function SignIn({
             </Button>
             <Grid container>
               <Grid item xs>
-                <div className="form_sublinks form_link">Forgot password?</div>
-              </Grid>
-              <Grid item>
                 <div className="form_sublinks">
                   {login
                     ? "Don't have an account? "

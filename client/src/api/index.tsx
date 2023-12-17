@@ -30,7 +30,7 @@ export const handleLogin = async ({
   identifier,
   password,
 }: LoginData): Promise<ResponseType> => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
   const isEmail = emailRegex.test(identifier);
 
   try {

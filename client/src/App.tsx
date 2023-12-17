@@ -4,8 +4,15 @@ import SignIn from "./SignIn";
 
 const App = () => {
   const [signedIn, setSignedIn] = useState(false);
-  console.log("Signed in state: ", signedIn);
-  return <>{!signedIn ? <SignIn setSignedInState={setSignedIn} /> : null}</>;
+  return (
+    <>
+      {!signedIn ? (
+        <SignIn setSignedInState={setSignedIn} />
+      ) : (
+        <div>Logged in!</div>
+      )}
+    </>
+  );
 };
 
 export default App;
