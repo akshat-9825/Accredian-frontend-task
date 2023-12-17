@@ -45,10 +45,9 @@ export const handleLogin = async ({
     return { success: true, message: response.data.message };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error("Error:", error.response?.data || error.message);
     return {
       success: false,
-      message: error.response?.data?.message || error.message,
+      message: error.response.data.error,
     };
   }
 };
@@ -57,15 +56,23 @@ export const handleRegistration = async ({
   email,
   password,
 }: RegistrationData) => {
-  await axios
-    .post<ResponseObject>("/api/register", { username, email, password })
-    .then((response: AxiosResponse<ResponseObject>) => {
-      return response.data.message;
-    })
-    .catch((error: AxiosError) => {
-      console.error("Error:", error.response?.data || error.message);
-      return error;
-    });
+  try {
+    const response: AxiosResponse<ResponseObject> = await axios.post(
+      "http://localhost:5001/api/register",
+      {
+        username: username,
+        email: email,
+        password: password,
+      }
+    );
+    return { success: true, message: response.data.message };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response.data.message,
+    };
+  }
 };
 
 export const handleForgotPassword = async ({
@@ -80,10 +87,9 @@ export const handleForgotPassword = async ({
       newPassword,
     })
     .then((response: AxiosResponse<ResponseObject>) => {
-      return response.data.message;
+      return { success: true, message: response.data.message };
     })
     .catch((error: AxiosError) => {
-      console.error("Error:", error.response?.data || error.message);
-      return error;
+      return { success: false, message: error.response?.data || error.message };
     });
 };

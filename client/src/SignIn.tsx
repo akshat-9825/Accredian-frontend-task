@@ -1,4 +1,10 @@
-import { Dispatch, FormEvent, SetStateAction, useState } from "react";
+import {
+  Dispatch,
+  FormEvent,
+  SetStateAction,
+  useCallback,
+  useState,
+} from "react";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
@@ -7,7 +13,9 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { ResponseType, handleLogin } from "./api";
+import { ResponseType, handleLogin, handleRegistration } from "./api";
+import { Alert, Snackbar } from "@mui/material";
+import { verifyPassword } from "./validators";
 
 import "./App.scss";
 
@@ -17,26 +25,85 @@ export default function SignIn({
   setSignedInState: Dispatch<SetStateAction<boolean>>;
 }) {
   const [login, setLogin] = useState(true);
-  console.log(setSignedInState);
-  const handleLoginBtn = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const email = String(data.get("email"));
-    const password = String(data.get("password"));
+  const [showSnackBar, setShowSnackBar] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-    try {
-      const response: ResponseType = await handleLogin({
-        identifier: email,
-        password: password,
-      });
+  const handleLoginBtn = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
+      const email = String(data.get("email"));
+      const password = String(data.get("password"));
 
-      if (response.success) {
-        setSignedInState(true);
+      try {
+        const response: ResponseType = await handleLogin({
+          identifier: email,
+          password: password,
+        });
+        if (response.success) {
+          setSuccessMsg(response.message);
+          setErrorMsg("");
+          setShowSnackBar(true);
+          setTimeout(() => {
+            setSignedInState(true);
+          }, 1000);
+        } else {
+          setErrorMsg(response.message);
+          setSuccessMsg("");
+          setShowSnackBar(true);
+        }
+      } catch {
+        //
       }
-    } catch (error) {
-      console.error("Login error:", error);
-    }
-  };
+    },
+    [setSignedInState]
+  );
+
+  const handleSnackBarClose = useCallback(() => {
+    setShowSnackBar(false);
+  }, []);
+
+  const handleSignUpBtn = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
+      const email = String(data.get("email"));
+      const password = String(data.get("password"));
+      const username = String(data.get("username"));
+      const confirmPassword = String(data.get("confirm_password"));
+
+      if (verifyPassword(password, confirmPassword)) {
+        try {
+          const response: ResponseType = await handleRegistration({
+            username: username,
+            password: password,
+            email: email,
+          });
+
+          if (response.success) {
+            setSuccessMsg(response.message + ". Please Login");
+            setErrorMsg("");
+            setShowSnackBar(true);
+            setTimeout(() => {
+              setLogin(true);
+            }, 1000);
+          } else {
+            setErrorMsg(response.message);
+            setSuccessMsg("");
+            setShowSnackBar(true);
+          }
+        } catch {
+          //
+        }
+      } else {
+        setErrorMsg("Passwords do not match");
+        setSuccessMsg("");
+        setShowSnackBar(true);
+      }
+    },
+    []
+  );
 
   const darkTheme = createTheme({
     palette: {
@@ -63,7 +130,7 @@ export default function SignIn({
           <Box
             component="form"
             onSubmit={(event) => {
-              login ? handleLoginBtn(event) : null;
+              login ? handleLoginBtn(event) : handleSignUpBtn(event);
             }}
             noValidate
             sx={{ mt: 1 }}>
@@ -72,10 +139,21 @@ export default function SignIn({
               required
               fullWidth
               id="email"
-              label="Email Address or Username"
+              label={login ? "Email Address or Username" : "Email Address"}
               name="email"
               autoFocus
             />
+            {!login ? (
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="username"
+                label="Username"
+                name="username"
+                autoFocus
+              />
+            ) : null}
             <TextField
               margin="normal"
               required
@@ -85,6 +163,18 @@ export default function SignIn({
               type="password"
               id="password"
             />
+            {!login ? (
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Confirm Password"
+                name="confirm_password"
+                type="password"
+                id="confirm_password"
+                autoFocus
+              />
+            ) : null}
             <Button
               type="submit"
               fullWidth
@@ -109,6 +199,24 @@ export default function SignIn({
             </Grid>
           </Box>
         </Box>
+        <Snackbar
+          open={showSnackBar}
+          autoHideDuration={6000}
+          onClose={handleSnackBarClose}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}>
+          <div>
+            {successMsg && (
+              <Alert severity="success" onClose={handleSnackBarClose}>
+                {successMsg}
+              </Alert>
+            )}
+            {errorMsg && (
+              <Alert severity="error" onClose={handleSnackBarClose}>
+                {errorMsg}
+              </Alert>
+            )}
+          </div>
+        </Snackbar>
       </Container>
     </ThemeProvider>
   );
